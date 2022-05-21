@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  spring-boot-hello-world
+  namespace: default
+  labels:
+    app:  spring-boot-hello-world
+spec:
+  selector:
+    matchLabels:
+      app: spring-boot-hello-world
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  spring-boot-hello-world
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  spring-boot-hello-world
+        image:  barcanjodev/spring-boot-hello-world
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 250m
+            memory: 200Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort:  8080
+      restartPolicy: Always
